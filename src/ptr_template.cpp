@@ -264,6 +264,15 @@ private:
 
             do
             {   //                                                           0
+                Field* bagFields = bagInfo->Fetch();
+                uint32 bagEntry = bagFields[0].Get<uint32>();
+                uint8 slotEntry = bagFields[1].Get<uint8>();
+                uint32 itemEntry = bagFields[2].Get<uint32>();
+                uint32 quantityEntry = bagFields[3].Get<uint32>();
+
+                if ((slotEntry < INVENTORY_SLOT_BAG_END || slotEntry >= PLAYER_SLOT_END) && bagEntry == CONTAINER_BACKPACK) // If item is either an equipped armorpiece, weapon, or container.
+                    continue;
+
                 LOG_DEBUG("module", "Adding bag item {} to template character {} / {}.", (*bagInfo)[2].Get<uint32>(), player->GetGUID().ToString(), player->GetGUID().GetCounter());
                 QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = 0 AND guid = {})", (player->GetGUID().GetCounter()));
 
@@ -273,12 +282,7 @@ private:
                     continue;
                 }
 
-                Field* bagFields = bagInfo->Fetch();
                 Field* containerFields = containerInfo->Fetch();
-                uint32 bagEntry = bagFields[0].Get<uint32>();
-                uint8 slotEntry = bagFields[1].Get<uint8>();
-                uint32 itemEntry = bagFields[2].Get<uint32>();
-                uint32 quantityEntry = bagFields[3].Get<uint32>();
 
                 if (itemEntry == ITEM_GOLD)
                 {
@@ -286,8 +290,6 @@ private:
                     player->SetMoney(quantityEntry);
                     continue;
                 }
-                if ((slotEntry < INVENTORY_SLOT_BAG_END || slotEntry >= PLAYER_SLOT_END) && bagEntry == CONTAINER_BACKPACK) // If item is either an equipped armorpiece, weapon, or container.
-                    continue;
 
                 ItemPosCountVec dest;
                 if (bagEntry > CONTAINER_BACKPACK && bagEntry < CONTAINER_FINISH) // If bag is an equipped container.
