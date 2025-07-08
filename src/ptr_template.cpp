@@ -268,7 +268,10 @@ private:
                 QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = 0 AND guid = {})", (player->GetGUID().GetCounter()));
 
                 if (!containerInfo) // Apparently this can happen sometimes.
+                {
+                    LOG_WARN("module", "Player {} tried to apply template {}, but no container info was found for bag item {}. Skipping.", player->GetGUID().ToString(), index, (*bagInfo)[2].Get<uint32>());
                     continue;
+                }
 
                 Field* bagFields = bagInfo->Fetch();
                 Field* containerFields = containerInfo->Fetch();
