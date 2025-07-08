@@ -264,7 +264,7 @@ private:
 
             do
             {   //                                                           0
-                LOG_INFO("module", "Adding bag item {} to template character {}.", (*bagInfo)[2].Get<uint32>(), player->GetGUID().ToString());
+                LOG_INFO("module", "Adding bag item {} to template character {} / {}.", (*bagInfo)[2].Get<uint32>(), player->GetGUID().ToString(), player->GetGUID().GetCounter());
                 QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = 0 AND guid = {})", (player->GetGUID().GetCounter()));
 
                 if (!containerInfo) // Apparently this can happen sometimes.
