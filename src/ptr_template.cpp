@@ -311,6 +311,11 @@ private:
 
                             TemplateHelperItemEnchants(bagInfo, player, item, 4);
                         }
+                        else
+                        {
+                            LOG_WARN("module", "Player {} tried to apply template {}, but item {} could not be added to bag {}. Error code: {}.", player->GetGUID().ToString(), index, itemEntry, bagEntry, validCheck);
+                            continue;
+                        }
                     } while (containerInfo->NextRow());
                 }
                 else if (bagEntry == CONTAINER_BACKPACK)
@@ -332,6 +337,11 @@ private:
 
                         TemplateHelperItemEnchants(bagInfo, player, item, 4);
                     }
+                    else
+                    {
+                        LOG_WARN("module", "Player {} tried to apply template {}, but item {} could not be added to backpack. Error code: {}.", player->GetGUID().ToString(), index, itemEntry, validCheck);
+                        continue;
+                    }
                 }
                 else
                 {
@@ -346,6 +356,11 @@ private:
                         TemplateHelperItemEnchants(bagInfo, player, itemBuffer, 4);
 
                         excessiveItems.push_back(itemBuffer);
+                    }
+                    else
+                    {
+                        LOG_WARN("module", "Player {} tried to apply template {}, but item {} could not be added to inventory. Error code: {}.", player->GetGUID().ToString(), index, itemEntry, validCheck);
+                        continue;
                     }
                 }
             } while (bagInfo->NextRow());
