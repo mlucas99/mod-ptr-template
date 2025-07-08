@@ -274,16 +274,7 @@ private:
                     continue;
 
                 LOG_DEBUG("module", "Adding bag item {} to template character {} / {}.", (*bagInfo)[2].Get<uint32>(), player->GetGUID().ToString(), player->GetGUID().GetCounter());
-                QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = 0 AND guid = {})", (player->GetGUID().GetCounter()));
-
-                if (!containerInfo) // Apparently this can happen sometimes.
-                {
-                    LOG_WARN("module", "Player {} tried to apply template {}, but no container info was found for bag item {}. Skipping.", player->GetGUID().ToString(), index, (*bagInfo)[2].Get<uint32>());
-                    continue;
-                }
-
-                Field* containerFields = containerInfo->Fetch();
-
+                
                 if (itemEntry == ITEM_GOLD)
                 {
                     LOG_DEBUG("module", "Adding {} gold to template character {}.", quantityEntry, player->GetGUID().ToString());
@@ -294,47 +285,54 @@ private:
                 ItemPosCountVec dest;
                 if (bagEntry > CONTAINER_BACKPACK && bagEntry < CONTAINER_FINISH) // If bag is an equipped container.
                 { // TODO: Make this whole section better.
-                    LOG_DEBUG("module", "Adding equipped bag item {} to template character {}.", itemEntry, player->GetGUID().ToString());
-                    do // Also TODO: Add support for adding to bank bag contents. Damn paladins.
-                    {
-                        if (!containerFields) // Apparently this can happen sometimes.
-                            continue;
+                    // LOG_DEBUG("module", "Adding equipped bag item {} to template character {}.", itemEntry, player->GetGUID().ToString());
 
-                        uint8 slotDBInfo = containerFields[0].Get<uint8>();
+                    // QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = {} AND guid = {} AND slot BETWEEN {} AND {})", bagEntry, (player->GetGUID().GetCounter()), PLAYER_SLOT_END, INVENTORY_SLOT_BAG_END - 1);
+                    // if (!containerInfo) // Apparently this can happen sometimes.
+                    // {
+                    //     LOG_WARN("module", "Player {} tried to apply template {}, but no container info was found for bag item {}. Skipping.", player->GetGUID().ToString(), index, (*bagInfo)[2].Get<uint32>());
+                    //     continue;
+                    // }
+                    // else
+                    // {
+                    //     Field* containerFields = containerInfo->Fetch();
+                    // }
 
-                        if (bagEntry != (slotDBInfo - 18)) // Check if equipped bag matches specified bag for module.
-                            continue;
+                    // do // Also TODO: Add support for adding to bank bag contents. Damn paladins.
+                    // {
+                    //     if (!containerFields) // Apparently this can happen sometimes.
+                    //         continue;
 
-                        if (slotDBInfo < INVENTORY_SLOT_BAG_START || slotDBInfo >= INVENTORY_SLOT_ITEM_START)
-                            continue; // Ignore any non-container slots (i.e. backpack gear, equipped gear)
+                    //     uint8 slotDBInfo = containerFields[0].Get<uint8>();
 
-                        uint8 validCheck = player->CanStoreNewItem(slotDBInfo, slotEntry, dest, itemEntry, quantityEntry);
-                        if (validCheck == EQUIP_ERR_OK)
-                        {
-                            LOG_DEBUG("module", "Checks passed for item {} to bag {} for template character {}.", itemEntry, bagEntry, player->GetGUID().ToString());
-                            player->StoreNewItem(dest, itemEntry, true);
-                            Item* item = player->GetUseableItemByPos(slotDBInfo, slotEntry);
-                            player->SendNewItem(item, 1, false, true); // Broadcast item detail packet.
-                            if (item && item->GetEntry() != itemEntry)
-                                continue;
+                    //     if (bagEntry != (slotDBInfo - 18)) // Check if equipped bag matches specified bag for module.
+                    //         continue;
 
-                            TemplateHelperItemEnchants(bagInfo, player, item, 4);
-                        }
-                        else
-                        {
-                            LOG_WARN("module", "Player {} tried to apply template {}, but item {} could not be added to bag {}. Error code: {}.", player->GetGUID().ToString(), index, itemEntry, bagEntry, validCheck);
-                            continue;
-                        }
-                    } while (containerInfo->NextRow());
+                    //     if (slotDBInfo < INVENTORY_SLOT_BAG_START || slotDBInfo >= INVENTORY_SLOT_ITEM_START)
+                    //         continue; // Ignore any non-container slots (i.e. backpack gear, equipped gear)
+
+                    //     uint8 validCheck = player->CanStoreNewItem(slotDBInfo, slotEntry, dest, itemEntry, quantityEntry);
+                    //     if (validCheck == EQUIP_ERR_OK)
+                    //     {
+                    //         LOG_DEBUG("module", "Checks passed for item {} to bag {} for template character {}.", itemEntry, bagEntry, player->GetGUID().ToString());
+                    //         player->StoreNewItem(dest, itemEntry, true);
+                    //         Item* item = player->GetUseableItemByPos(slotDBInfo, slotEntry);
+                    //         player->SendNewItem(item, 1, false, true); // Broadcast item detail packet.
+                    //         if (item && item->GetEntry() != itemEntry)
+                    //             continue;
+
+                    //         TemplateHelperItemEnchants(bagInfo, player, item, 4);
+                    //     }
+                    //     else
+                    //     {
+                    //         LOG_WARN("module", "Player {} tried to apply template {}, but item {} could not be added to bag {}. Error code: {}.", player->GetGUID().ToString(), index, itemEntry, bagEntry, validCheck);
+                    //         continue;
+                    //     }
+                    // } while (containerInfo->NextRow());
                 }
                 else if (bagEntry == CONTAINER_BACKPACK)
                 {
                     LOG_DEBUG("module", "Adding backpack item {} to template character {}.", itemEntry, player->GetGUID().ToString());
-                    if (!containerFields) // Apparently this can happen sometimes.
-                        continue;
-
-                    if (slotEntry < INVENTORY_SLOT_BAG_END || slotEntry >= PLAYER_SLOT_END)
-                        continue; // Ignore any equipped items or invalid slot items.
 
                     uint8 validCheck = player->CanStoreNewItem(INVENTORY_SLOT_BAG_0, slotEntry, dest, itemEntry, quantityEntry);
                     if (validCheck == EQUIP_ERR_OK)
