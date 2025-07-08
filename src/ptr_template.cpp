@@ -264,6 +264,7 @@ private:
 
             do
             {   //                                                           0
+                LOG_INFO("module", "Adding bag item {} to template character {}.", (*bagInfo)[2].Get<uint32>(), player->GetGUID().ToString());
                 QueryResult containerInfo = CharacterDatabase.Query("SELECT slot FROM character_inventory WHERE (bag = 0 AND guid = {})", (player->GetGUID().GetCounter()));
 
                 if (!containerInfo) // Apparently this can happen sometimes.
@@ -278,6 +279,7 @@ private:
 
                 if (itemEntry == ITEM_GOLD)
                 {
+                    LOG_INFO("module", "Adding {} gold to template character {}.", quantityEntry, player->GetGUID().ToString());
                     player->SetMoney(quantityEntry);
                     continue;
                 }
@@ -287,6 +289,7 @@ private:
                 ItemPosCountVec dest;
                 if (bagEntry > CONTAINER_BACKPACK && bagEntry < CONTAINER_FINISH) // If bag is an equipped container.
                 { // TODO: Make this whole section better.
+                    LOG_INFO("module", "Adding equipped bag item {} to template character {}.", itemEntry, player->GetGUID().ToString());
                     do // Also TODO: Add support for adding to bank bag contents. Damn paladins.
                     {
                         if (!containerFields) // Apparently this can happen sometimes.
@@ -303,6 +306,7 @@ private:
                         uint8 validCheck = player->CanStoreNewItem(slotDBInfo, slotEntry, dest, itemEntry, quantityEntry);
                         if (validCheck == EQUIP_ERR_OK)
                         {
+                            LOG_INFO("module", "Checks passed for item {} to bag {} for template character {}.", itemEntry, bagEntry, player->GetGUID().ToString());
                             player->StoreNewItem(dest, itemEntry, true);
                             Item* item = player->GetUseableItemByPos(slotDBInfo, slotEntry);
                             player->SendNewItem(item, 1, false, true); // Broadcast item detail packet.
@@ -320,6 +324,7 @@ private:
                 }
                 else if (bagEntry == CONTAINER_BACKPACK)
                 {
+                    LOG_INFO("module", "Adding backpack item {} to template character {}.", itemEntry, player->GetGUID().ToString());
                     if (!containerFields) // Apparently this can happen sometimes.
                         continue;
 
@@ -329,6 +334,7 @@ private:
                     uint8 validCheck = player->CanStoreNewItem(INVENTORY_SLOT_BAG_0, slotEntry, dest, itemEntry, quantityEntry);
                     if (validCheck == EQUIP_ERR_OK)
                     {
+                        LOG_INFO("module", "Checks passed for item {} to backpack for template character {}.", itemEntry, player->GetGUID().ToString());
                         player->StoreNewItem(dest, itemEntry, true);
                         Item* item = player->GetUseableItemByPos(INVENTORY_SLOT_BAG_0, slotEntry); // TODO: Make this better and cooler.
                         player->SendNewItem(item, 1, false, true); // Broadcast item detail packet.
@@ -345,10 +351,14 @@ private:
                 }
                 else
                 {
+                    LOG_INFO("module", "Adding item {} to template character {}.", itemEntry, player->GetGUID().ToString());
                     uint8 validCheck = player->CanStoreNewItem(NULL_BAG, NULL_SLOT, dest, itemEntry, quantityEntry);
                     if (validCheck == EQUIP_ERR_OK)
+                    {
+                        LOG_INFO("module", "Checks passed for item {} to inventory for template character {}.", itemEntry, player->GetGUID().ToString());
                         player->StoreNewItem(dest, itemEntry, true); // Add to next available slot in backpack/equipped bags.
                                                                      // TODO: Create the item and make it usable for item enchant helper. Also packet broadcast.
+                    }
                     else if (validCheck == EQUIP_ERR_INVENTORY_FULL) // No available slots, post office's problem.
                     {
                         Item* itemBuffer = Item::CreateItem(itemEntry, quantityEntry, player, false);
@@ -367,6 +377,7 @@ private:
 
             while (!excessiveItems.empty())
             {
+                LOG_INFO("module", "Sending excessive item {} to template character {} via mail.", excessiveItems.front()->GetEntry(), player->GetGUID().ToString());
                 std::string subject = player->GetSession()->GetAcoreString(LANG_NOT_EQUIPPED_ITEM);
                 std::string content = player->GetSession()->GetModuleString(module_string, MAIL_ERROR_EQUIP_BODY)[0];
 
